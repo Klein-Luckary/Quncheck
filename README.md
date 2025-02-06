@@ -1,4 +1,4 @@
-# HelloPlugin
+# Quncheck
 
 <!--
 ## 插件开发者详阅

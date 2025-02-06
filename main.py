@@ -22,10 +22,16 @@ class UserIDPlugin(BasePlugin):
             if not msg:
                 return
 
-            # 获取发送者名称
+            # 尝试获取发送者名称
             sender_name = "Unknown"
-            if hasattr(ctx.event, 'sender') and hasattr(ctx.event.sender, 'member_name'):
-                sender_name = ctx.event.sender.member_name
+            if hasattr(ctx.event, 'sender'):
+                sender = ctx.event.sender
+                if hasattr(sender, 'member_name') and sender.member_name:
+                    sender_name = sender.member_name
+                elif hasattr(sender, 'nickname') and sender.nickname:
+                    sender_name = sender.nickname
+                elif hasattr(sender, 'user_id'):
+                    sender_name = f"用户{sender.user_id}"
 
             # 构建修改后的消息
             modified_msg = f"群友 {sender_name} 说：{msg}"

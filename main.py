@@ -1,49 +1,59 @@
 from pkg.plugin.context import register, handler, llm_func, BasePlugin, APIHost, EventContext
-from pkg.plugin.events import *  # 导入事件类
+from pkg.plugin.events import *
 
+@register(
+    name="Quncheck", 
+    description="群聊消息精准@回复", 
+    version="0.1", 
+    author="KL"
+)
+class GroupReplyPlugin(BasePlugin):
 
-# 注册插件
-@register(name="Hello", description="hello world", version="0.1", author="RockChinQ")
-class MyPlugin(BasePlugin):
-
-    # 插件加载时触发
     def __init__(self, host: APIHost):
-        pass
+        # 初始化字典保存最新发送者信息 {群号: 用户ID}
+        self.last_senders = {}
+        self.host = host
 
-    # 异步初始化
-    async def initialize(self):
-        pass
-
-    # 当收到个人消息时触发
-    @handler(PersonNormalMessageReceived)
-    async def person_normal_message_received(self, ctx: EventContext):
-        msg = ctx.event.text_message  # 这里的 event 即为 PersonNormalMessageReceived 的对象
-        if msg == "hello":  # 如果消息为hello
-
-            # 输出调试信息
-            self.ap.logger.debug("hello, {}".format(ctx.event.sender_id))
-
-            # 回复消息 "hello, <发送者id>!"
-            ctx.add_return("reply", ["hello, {}!".format(ctx.event.sender_id)])
-
-            # 阻止该事件默认行为（向接口获取回复）
-            ctx.prevent_default()
-
-    # 当收到群消息时触发
     @handler(GroupNormalMessageReceived)
-    async def group_normal_message_received(self, ctx: EventContext):
-        msg = ctx.event.text_message  # 这里的 event 即为 GroupNormalMessageReceived 的对象
-        if msg == "hello":  # 如果消息为hello
+    async def handle_group_message(self, ctx: EventContext):
+        """处理接收到的群消息"""
+        try:
+            # 获取群号和发送者ID
+            group_id = ctx.event.group_id
+            sender_id = ctx.event.sender_id
+            
+            # 记录最后发送者
+            self.last_senders[group_id] = sender_id
+            
+            # 示例：处理特定指令
+            if ctx.event.text_message == "hello":
+                # 添加基础回复（后续会自动添加@）
+                ctx.add_return("reply", ["hello, everyone!"])
+                ctx.prevent_default()
 
-            # 输出调试信息
-            self.ap.logger.debug("hello, {}".format(ctx.event.sender_id))
+        except Exception as e:
+            self.host.logger.error(f"处理群消息出错: {str(e)}")
 
-            # 回复消息 "hello, everyone!"
-            ctx.add_return("reply", ["hello, everyone!"])
+    @handler(GroupMessageBeforeSend)
+    async def handle_group_reply(self, ctx: EventContext):
+        """处理即将发送的群回复"""
+        try:
+            group_id = ctx.event.group_id
+            
+            # 获取最后发送者ID
+            sender_id = self.last_senders.get(group_id)
+            if sender_id:
+                # 构建@消息的CQ码
+                at_msg = f"[CQ:at,qq={sender_id}]"
+                
+                # 在原始内容前添加@信息
+                ctx.event.message = f"{at_msg} {ctx.event.message}"
+                
+                # 删除已处理的记录
+                del self.last_senders[group_id]
 
-            # 阻止该事件默认行为（向接口获取回复）
-            ctx.prevent_default()
+        except Exception as e:
+            self.host.logger.error(f"处理群回复出错: {str(e)}")
 
-    # 插件卸载时触发
     def __del__(self):
         pass

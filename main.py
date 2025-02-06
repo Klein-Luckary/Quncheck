@@ -1,18 +1,17 @@
-import traceback
 from pkg.plugin.context import register, handler, BasePlugin, APIHost, EventContext
-from pkg.plugin.events import GroupNormalMessageReceived, GroupMessageBeforeSend
+from pkg.plugin.events import GroupNormalMessageReceived
 
 @register(
-    name="GroupReply", 
-    description="群聊消息精准@回复", 
-    version="1.1", 
-    author="YourName"
+    name="Quncheck", 
+    description="群聊识别补丁", 
+    version="0.1", 
+    author="KL"
 )
 class UserIDPlugin(BasePlugin):
 
     def __init__(self, host: APIHost):
         self.host = host
-    
+
     async def initialize(self):
         pass
 
@@ -32,7 +31,7 @@ class UserIDPlugin(BasePlugin):
             modified_msg = f"群友 {sender_name} 说：{msg}"
             
             # 打印修改后的消息到控制台
-            print(f"Modified message: {modified_msg}")
+            self.host.logger.debug(f"Modified message: {modified_msg}")
             
             # 修改消息内容
             if hasattr(ctx.event, 'query') and hasattr(ctx.event.query, 'user_message'):
@@ -53,7 +52,7 @@ class UserIDPlugin(BasePlugin):
                             last_message.content = modified_msg
 
         except Exception as e:
-            print(f"Error processing message: {e}")
+            self.host.logger.error(f"Error processing message: {e}")
 
     def __del__(self):
         pass

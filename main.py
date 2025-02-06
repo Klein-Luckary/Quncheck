@@ -15,7 +15,7 @@ class UserIDPlugin(BasePlugin):
     async def initialize(self):
         pass
 
-    @handler(GroupNormalMessageReceived)
+    @handler(GroupNormalMessageReceived)  # 确保使用正确的事件名称
     async def handle_group_message(self, ctx: EventContext):
         try:
             msg = ctx.event.text_message
@@ -56,3 +56,4 @@ class UserIDPlugin(BasePlugin):
 
     def __del__(self):
         pass
+

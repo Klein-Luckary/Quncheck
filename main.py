@@ -15,7 +15,7 @@ class UserIDPlugin(BasePlugin):
     async def initialize(self):
         pass
 
-    @handler(GroupNormalMessageReceived)  # 确保使用正确的事件名称
+    @handler(GroupNormalMessageReceived)
     async def handle_group_message(self, ctx: EventContext):
         try:
             msg = ctx.event.text_message
@@ -31,7 +31,7 @@ class UserIDPlugin(BasePlugin):
             modified_msg = f"群友 {sender_name} 说：{msg}"
             
             # 打印修改后的消息到控制台
-            self.host.logger.debug(f"Modified message: {modified_msg}")
+            self.ap.logger.debug(f"Modified message: {modified_msg}")
             
             # 修改消息内容
             if hasattr(ctx.event, 'query') and hasattr(ctx.event.query, 'user_message'):
@@ -52,8 +52,7 @@ class UserIDPlugin(BasePlugin):
                             last_message.content = modified_msg
 
         except Exception as e:
-            self.host.logger.error(f"Error processing message: {e}")
+            self.ap.logger.error(f"Error processing message: {e}")
 
     def __del__(self):
         pass
-
